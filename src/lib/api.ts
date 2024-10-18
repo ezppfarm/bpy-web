@@ -1,6 +1,7 @@
 import { apiUrl } from './env';
 import type {
 	Clan,
+	Country,
 	MapInfo,
 	MapScores,
 	PlayerCounts,
@@ -117,4 +118,10 @@ export const getPlayer = async (
 	} catch {
 		return undefined;
 	}
+};
+
+export const getCountries = async () => {
+	const requestedCountryData = await fetch(`${apiUrl}/v1/get_countries`);
+	if (!requestedCountryData.ok) return undefined;
+	return (await requestedCountryData.json()).countries as Country[];
 };

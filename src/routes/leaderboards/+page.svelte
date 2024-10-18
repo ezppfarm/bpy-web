@@ -9,6 +9,8 @@
 	import { __ } from '$lib/language';
 	import { userLanguage } from '$lib/storage';
 
+	export let data;
+
 	const modes = ['osu', 'taiko', 'catch', 'mania'];
 	const types = ['vanilla', 'relax', 'autopilot'];
 	const sorts = ['pp', 'tscore', 'plays'];
@@ -19,6 +21,8 @@
 	let firstLoad = true;
 	let loading = true;
 	let failed = false;
+
+	$: countries = data.countries.slice(0, 25);
 
 	const queryMode = queryParam('mode', undefined, {
 		pushHistory: false
@@ -32,11 +36,15 @@
 	const queryPage = queryParam('page', undefined, {
 		pushHistory: false
 	});
+	const queryCountry = queryParam('country', undefined, {
+		pushHistory: false
+	});
 
 	let currentType = 'vanilla';
 	let currentMode = 'osu';
 	let currentSort = 'pp';
 	let currentPage = 1;
+	let currentCountry = '';
 	let hasNextPage = true;
 
 	const selectedMode = $queryMode;
@@ -45,6 +53,7 @@
 	if (modes.includes(selectedMode!)) currentMode = selectedMode!;
 	if (types.includes(selectedType!)) currentType = selectedType!;
 	if (sorts.includes(selectedSort!)) currentSort = selectedSort!;
+	if ($queryCountry && $queryCountry.length > 0) currentCountry = $queryCountry;
 	if (/^\d+$/.test($queryPage!) && parseInt($queryPage!) > 0) currentPage = parseInt($queryPage!);
 
 	const refreshLeaderboard = async () => {
@@ -87,6 +96,7 @@
 		urlParams.set('sort', currentSort);
 		urlParams.set('limit', '50');
 		urlParams.set('offset', ((currentPage - 1) * usersPerPage).toFixed(0));
+		if (currentCountry.length > 0) urlParams.set('country', currentCountry);
 
 		try {
 			const leaderboard = await fetch(`${apiUrl}/v1/get_leaderboard?` + urlParams.toString());
@@ -271,6 +281,35 @@
 				>
 					<ChevronRight class="outline-none border-none" />
 				</button>
+			</div>
+			<div
+				class="flex flex-row gap-1.5 items-center justify-center flex-wrap mt-5 bg-gray-700/30 py-2"
+			>
+				{#each countries as country}
+					<!-- svelte-ignore a11y-no-static-element-interactions -->
+					<!-- svelte-ignore a11y-click-events-have-key-events -->
+					<div
+						class="p-[4px] {currentCountry === country.country ? "bg-primary-400/50" : "bg-gray-900/50"} hover:bg-gray-700/50 cursor-pointer rounded shadow"
+						on:click={() => {
+              if(loading) return;
+							if (currentCountry === country.country) {
+								queryCountry.set(null);
+								currentCountry = '';
+								refreshLeaderboard();
+							} else {
+								queryCountry.set(country.country);
+								currentCountry = country.country;
+								refreshLeaderboard();
+							}
+						}}
+					>
+						<img
+							src="/flags/{country.country.toUpperCase()}.png"
+							alt="{country.country} Flag"
+							class="min-w-[35px] w-[35px]"
+						/>
+					</div>
+				{/each}
 			</div>
 			{#if failed}
 				<div class="w-full flex flex-col justify-center items-center gap-2">
