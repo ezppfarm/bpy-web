@@ -290,3 +290,8 @@ export type PlayerStatus = {
 		};
 	};
 };
+
+export type Country = {
+	country: string;
+	userCount: number;
+};
