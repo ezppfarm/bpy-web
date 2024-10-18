@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
-		"dev": "bunx --bun vite",
+		"dev": "bunx --bun vite --port 5382",
 		"compile": "bun run build && bun start",
 		"start": "bun -r dotenv/config ./build/index.js",
 		"build": "bunx --bun vite build",
