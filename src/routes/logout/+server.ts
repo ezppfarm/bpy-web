@@ -1,5 +1,5 @@
 import { error, json } from '@sveltejs/kit';
-import { getRedisClient } from '../../hooks.server';
+import { getRedisClient } from '$lib/database';
 
 export const POST = async ({ cookies }) => {
 	if (cookies.get('sessionToken') !== undefined) {

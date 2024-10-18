@@ -1,6 +1,6 @@
 import { login } from '$lib/user';
 import { error, json } from '@sveltejs/kit';
-import { getRedisClient } from '../../hooks.server';
+import { getRedisClient } from '$lib/database';
 import { makeid } from '$lib/stringUtil';
 import { env } from '$env/dynamic/private';
 import { env as pubEnv } from '$env/dynamic/public';

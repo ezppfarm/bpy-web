@@ -1,4 +1,4 @@
-import { getMySQLDatabase, getRedisClient } from '../hooks.server';
+import { getMySQLDatabase, getRedisClient } from '$lib/database';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import type { DBUser } from './types';

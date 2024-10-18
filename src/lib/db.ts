@@ -1,4 +1,4 @@
-import { getMySQLDatabase } from '../hooks.server';
+import { getMySQLDatabase } from '$lib/database';
 import type { DBClan } from './types';
 
 export const getClans = async (opts: {
