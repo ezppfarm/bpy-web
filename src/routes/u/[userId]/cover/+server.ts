@@ -1,24 +1,32 @@
 import path from 'path';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
-import { readFile } from 'fs/promises';
+import { existsSync, mkdirSync } from 'fs';
+import { readFile, writeFile } from 'fs/promises';
 import { hashCode } from '$lib/intUtil.js';
+import { env } from '$env/dynamic/private';
+import { fdir } from 'fdir';
 
 const defaultCovers: { [key: string]: Buffer } = {};
-const coversFolder = path.join(process.cwd(), 'covers');
+const coversFolder =
+	env.COVERS_DIRECTORY && env.COVERS_DIRECTORY.length > 0
+		? env.COVERS_DIRECTORY
+		: path.join(process.cwd(), 'covers');
 if (!existsSync(coversFolder)) mkdirSync(coversFolder);
 
 export async function GET({ params, setHeaders }) {
 	const userId = params.userId;
-	const coverPath = path.join(coversFolder, `${userId}.jpg`);
-	if (existsSync(coverPath)) {
-		const cover = await readFile(coverPath);
+
+	const cover = await new fdir().glob(`${userId}.*`).crawl(coversFolder).withPromise();
+	if (cover.length > 0) {
+		const firstCoverMatch = Bun.file(path.join(coversFolder, cover[0]));
+		const coverStream = await firstCoverMatch.arrayBuffer();
 		setHeaders({
-			'Content-Type': 'image/jpeg'
+			'Content-Type': firstCoverMatch.type
 		});
-		return new Response(cover, {
+		return new Response(coverStream, {
 			status: 200
 		});
 	}
+  
 	for (let i = 1; i < 9; i++) {
 		const defaultCoverPath = path.join(coversFolder, `default${i}.jpg`);
 		if (!existsSync(defaultCoverPath)) {
@@ -27,7 +35,9 @@ export async function GET({ params, setHeaders }) {
 				method: 'GET'
 			});
 			const arrayBuffer = await response.arrayBuffer();
-			writeFileSync(defaultCoverPath, Buffer.from(arrayBuffer));
+			const buffer: Buffer = Buffer.from(arrayBuffer);
+			const uint8Array = new Uint8Array(buffer);
+			await writeFile(defaultCoverPath, uint8Array);
 			defaultCovers[i] = Buffer.from(arrayBuffer);
 		} else {
 			if (!defaultCovers[i]) {
